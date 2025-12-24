@@ -1,9 +1,10 @@
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Spotifree</title>
+    <title>Spotifree | Audio Directo</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
@@ -13,55 +14,33 @@
             font-family: 'Inter', sans-serif; 
             background-color: #000000; 
             color: #ffffff;
-            overflow: hidden; /* App feel */
+            overflow: hidden;
+            -webkit-tap-highlight-color: transparent;
         }
 
-        /* Colores Spotify */
         .sp-green { color: #1ed760; }
         .bg-sp-green { background-color: #1ed760; }
         .bg-sp-dark { background-color: #121212; }
-        .bg-sp-grey { background-color: #242424; }
 
-        /* Utilidades */
-        .line-clamp-2 {
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-        }
+        .line-clamp-1 { display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
+        .line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
         
-        /* Scrollbar oculta pero funcional */
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-        /* El video de YouTube se integra visualmente */
-        #yt-container {
-            position: absolute;
-            opacity: 0; /* Invisible pero activo */
-            pointer-events: none;
-            z-index: -1;
-            height: 1px; width: 1px;
-        }
-
         /* Animación de carga */
-        .loader-bar {
-            display: inline-block;
-            width: 4px;
-            height: 18px;
-            border-radius: 4px;
-            animation: dance 1s infinite;
-        }
-        .loader-bar:nth-child(2) { animation-delay: .2s; }
-        .loader-bar:nth-child(3) { animation-delay: .4s; }
-        @keyframes dance { 0%, 100% { height: 5px; } 50% { height: 20px; } }
+        .bars { display: flex; align-items: flex-end; height: 12px; gap: 2px; }
+        .bar { width: 3px; background: #1ed760; animation: sound 0s infinite alternate; }
+        @keyframes sound { 0% { height: 2px; } 100% { height: 12px; } }
+        .playing .bar { animation-duration: 0.4s; }
     </style>
 </head>
 <body class="h-screen flex flex-col">
 
-    <!-- AREA PRINCIPAL (Home & Search) -->
+    <!-- ÁREA PRINCIPAL -->
     <main class="flex-1 flex overflow-hidden relative">
         
-        <!-- Sidebar (Solo PC) -->
+        <!-- Sidebar (PC) -->
         <aside class="hidden md:flex w-64 bg-black flex-col gap-2 p-2">
             <div class="bg-sp-dark rounded-lg p-6 space-y-6">
                 <div onclick="showHome()" class="flex items-center gap-4 text-zinc-400 hover:text-white cursor-pointer transition font-bold">
@@ -71,16 +50,14 @@
                     <i data-lucide="search"></i> Buscar
                 </div>
             </div>
-            <div class="bg-sp-dark rounded-lg p-4 flex-1 overflow-y-auto">
-                <div class="flex justify-between items-center text-zinc-400 mb-4 px-2">
-                    <span class="font-bold"><i data-lucide="library" class="inline w-5 mr-2"></i> Tu Biblioteca</span>
+            <div class="bg-sp-dark rounded-lg p-4 flex-1">
+                <div class="flex items-center text-zinc-400 mb-4 px-2 font-bold gap-2">
+                    <i data-lucide="library"></i> Tu Biblioteca
                 </div>
-                <!-- Playlist Falsas -->
-                <div class="space-y-2">
-                    <div class="p-2 hover:bg-white/5 rounded-md cursor-pointer flex gap-3 items-center" onclick="searchMusic('Liked Songs')">
-                        <div class="w-12 h-12 bg-gradient-to-br from-indigo-700 to-indigo-300 rounded-md flex items-center justify-center"><i data-lucide="heart" class="w-5 fill-white"></i></div>
-                        <div><p class="font-bold text-sm">Canciones que te gustan</p><p class="text-xs text-zinc-400">Playlist</p></div>
-                    </div>
+                <!-- Playlist dummy -->
+                <div class="p-2 hover:bg-white/5 rounded-md cursor-pointer flex gap-3 items-center" onclick="searchMusic('Liked Songs')">
+                    <div class="w-12 h-12 bg-gradient-to-br from-violet-700 to-indigo-300 rounded flex items-center justify-center"><i data-lucide="heart" class="w-5 fill-white"></i></div>
+                    <div><p class="font-bold text-sm">Me Gusta</p><p class="text-xs text-zinc-400">Playlist</p></div>
                 </div>
             </div>
         </aside>
@@ -88,381 +65,355 @@
         <!-- Contenido Central -->
         <section class="flex-1 bg-sp-dark md:m-2 md:rounded-lg overflow-y-auto relative no-scrollbar" id="main-view">
             
-            <!-- Header Gradiente -->
-            <div class="sticky top-0 z-20 bg-[#121212]/90 backdrop-blur-md p-4 flex items-center gap-4 transition-colors" id="top-bar">
-                <div class="md:hidden flex gap-2">
-                    <button class="w-8 h-8 rounded-full bg-black/50 flex items-center justify-center text-white" onclick="history.back()"><i data-lucide="chevron-left"></i></button>
+            <!-- Header -->
+            <div class="sticky top-0 z-20 bg-[#121212]/95 backdrop-blur-xl p-4 flex items-center gap-4">
+                <div class="md:hidden">
+                    <button class="w-8 h-8 rounded-full bg-black/50 flex items-center justify-center" onclick="showHome()"><i data-lucide="chevron-left"></i></button>
                 </div>
-                
-                <!-- Buscador -->
                 <div class="flex-1 relative max-w-md">
                     <i data-lucide="search" class="absolute left-3 top-3 text-zinc-500 w-5"></i>
-                    <input type="text" id="searchInput" placeholder="¿Qué quieres escuchar?" 
-                        class="w-full bg-[#242424] rounded-full py-3 pl-10 pr-4 text-sm text-white focus:outline-none focus:ring-2 focus:ring-white transition placeholder-zinc-400">
+                    <input type="text" id="searchInput" placeholder="¿Qué quieres escuchar hoy?" 
+                        class="w-full bg-[#242424] rounded-full py-3 pl-10 pr-4 text-sm text-white focus:outline-none focus:ring-2 focus:ring-white transition placeholder-zinc-400 font-medium">
                 </div>
             </div>
 
-            <!-- VISTA: INICIO -->
+            <!-- HOME -->
             <div id="home-content" class="p-6 pb-32 space-y-8 animate-fade-in">
-                <h2 class="text-2xl font-bold tracking-tight">Buenos días</h2>
-                
-                <!-- Grid Accesos Rápidos -->
+                <h2 class="text-2xl font-bold">Para ti</h2>
                 <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
-                    <div onclick="searchMusic('Top 50 Global')" class="bg-[#2a2a2a] hover:bg-[#3a3a3a] transition rounded flex items-center gap-3 overflow-hidden cursor-pointer group">
+                    <div onclick="searchMusic('Top 50 Global')" class="bg-[#2a2a2a] hover:bg-[#3a3a3a] transition rounded flex items-center gap-3 overflow-hidden cursor-pointer group pr-4">
                         <img src="https://charts-images.scdn.co/assets/locale_en/regional/weekly/region_global_default.jpg" class="w-16 h-16 shadow-lg" onerror="this.src='https://placehold.co/60x60/purple/white'">
-                        <span class="font-bold text-sm">Top 50 Global</span>
-                        <div class="ml-auto mr-4 bg-sp-green rounded-full p-2 opacity-0 group-hover:opacity-100 shadow-lg translate-y-2 group-hover:translate-y-0 transition"><i data-lucide="play" fill="black" class="w-4 h-4 text-black"></i></div>
+                        <span class="font-bold text-sm">Top Global</span>
+                        <div class="ml-auto bg-sp-green rounded-full p-2 opacity-0 group-hover:opacity-100 shadow-lg translate-y-2 group-hover:translate-y-0 transition"><i data-lucide="play" fill="black" class="w-4 h-4 text-black"></i></div>
                     </div>
-                    <div onclick="searchMusic('Reggaeton 2024')" class="bg-[#2a2a2a] hover:bg-[#3a3a3a] transition rounded flex items-center gap-3 overflow-hidden cursor-pointer group">
+                    <div onclick="searchMusic('Reggaeton Mix')" class="bg-[#2a2a2a] hover:bg-[#3a3a3a] transition rounded flex items-center gap-3 overflow-hidden cursor-pointer group pr-4">
                         <img src="https://i.scdn.co/image/ab67706f000000026e65155694c9a660a9965d83" class="w-16 h-16 shadow-lg" onerror="this.src='https://placehold.co/60x60/orange/white'">
-                        <span class="font-bold text-sm">Mansión Reggaeton</span>
-                        <div class="ml-auto mr-4 bg-sp-green rounded-full p-2 opacity-0 group-hover:opacity-100 shadow-lg translate-y-2 group-hover:translate-y-0 transition"><i data-lucide="play" fill="black" class="w-4 h-4 text-black"></i></div>
-                    </div>
-                    <div onclick="searchMusic('Pop Mix')" class="bg-[#2a2a2a] hover:bg-[#3a3a3a] transition rounded flex items-center gap-3 overflow-hidden cursor-pointer group">
-                        <img src="https://i.scdn.co/image/ab67616d0000b2736413d339f4d4559388147d2f" class="w-16 h-16 shadow-lg" onerror="this.src='https://placehold.co/60x60/pink/white'">
-                        <span class="font-bold text-sm">Pop Mix</span>
-                        <div class="ml-auto mr-4 bg-sp-green rounded-full p-2 opacity-0 group-hover:opacity-100 shadow-lg translate-y-2 group-hover:translate-y-0 transition"><i data-lucide="play" fill="black" class="w-4 h-4 text-black"></i></div>
+                        <span class="font-bold text-sm">Urbano Mix</span>
+                        <div class="ml-auto bg-sp-green rounded-full p-2 opacity-0 group-hover:opacity-100 shadow-lg translate-y-2 group-hover:translate-y-0 transition"><i data-lucide="play" fill="black" class="w-4 h-4 text-black"></i></div>
                     </div>
                 </div>
 
-                <!-- Secciones -->
                 <div>
-                    <h3 class="text-xl font-bold mb-4 hover:underline cursor-pointer">Hecho para ti</h3>
-                    <div class="flex gap-4 overflow-x-auto no-scrollbar pb-4" id="made-for-you">
-                        <!-- Cards generadas con JS -->
+                    <h3 class="text-xl font-bold mb-4">Recomendado</h3>
+                    <div class="flex gap-4 overflow-x-auto no-scrollbar pb-4" id="suggestions">
+                        <!-- JS Llenará esto -->
                     </div>
                 </div>
             </div>
 
-            <!-- VISTA: RESULTADOS DE BÚSQUEDA -->
+            <!-- RESULTADOS -->
             <div id="search-results" class="hidden p-6 pb-32">
-                <h2 class="text-xl font-bold mb-4">Mejores resultados</h2>
-                <div class="flex flex-col gap-2" id="results-list">
-                    <!-- Lista de canciones -->
-                </div>
+                <h2 class="text-xl font-bold mb-4">Canciones</h2>
+                <div class="flex flex-col gap-1" id="results-list"></div>
             </div>
 
         </section>
     </main>
 
-    <!-- REPRODUCTOR (Barra Inferior) -->
-    <footer onclick="openFullScreen()" class="bg-black border-t border-[#282828] p-3 px-4 flex justify-between items-center h-24 z-50 cursor-pointer md:cursor-default relative">
+    <!-- REPRODUCTOR BARRA -->
+    <footer onclick="openFullScreen()" class="bg-black border-t border-[#282828] p-2 px-4 flex justify-between items-center h-20 z-50 cursor-pointer md:cursor-default relative">
         
-        <!-- Info Canción -->
-        <div class="flex items-center gap-4 w-1/3">
-            <img id="mini-img" src="https://placehold.co/60x60/121212/121212" class="w-14 h-14 rounded shadow bg-[#282828]">
-            <div class="hidden md:block">
-                <h4 id="mini-title" class="text-sm font-bold text-white hover:underline cursor-pointer line-clamp-1">Selecciona música</h4>
-                <p id="mini-artist" class="text-xs text-zinc-400 hover:underline cursor-pointer hover:text-white transition">...</p>
-            </div>
-            <div class="md:hidden">
-                <h4 id="mobile-title" class="text-sm font-bold text-white line-clamp-1">MundoMusic</h4>
-                <p class="text-xs text-sp-green flex items-center gap-1" id="mobile-status">Listo para reproducir</p>
+        <!-- Info -->
+        <div class="flex items-center gap-3 w-2/3 md:w-1/3">
+            <img id="mini-img" src="https://placehold.co/60x60/121212/121212" class="w-12 h-12 rounded bg-[#282828]">
+            <div class="min-w-0">
+                <h4 id="mini-title" class="text-sm font-bold text-white line-clamp-1">Spotifree</h4>
+                <p id="mini-artist" class="text-xs text-zinc-400 line-clamp-1">Selecciona música</p>
             </div>
         </div>
 
-        <!-- Controles (PC) -->
-        <div class="hidden md:flex flex-col items-center w-1/3 gap-2">
-            <div class="flex items-center gap-6">
-                <button class="text-zinc-400 hover:text-white"><i data-lucide="shuffle" class="w-4"></i></button>
-                <button class="text-zinc-400 hover:text-white"><i data-lucide="skip-back" class="w-5 fill-current"></i></button>
-                <button onclick="event.stopPropagation(); togglePlay()" id="pc-play-btn" class="bg-white rounded-full p-2 hover:scale-105 transition">
+        <!-- Controles PC -->
+        <div class="hidden md:flex flex-col items-center w-1/3 gap-1">
+            <div class="flex items-center gap-4">
+                <button onclick="event.stopPropagation(); seek(-10)" class="text-zinc-400 hover:text-white"><i data-lucide="skip-back" class="w-5 fill-current"></i></button>
+                <button onclick="event.stopPropagation(); togglePlay()" id="pc-play-btn" class="bg-white rounded-full p-1.5 hover:scale-105 transition">
                     <i data-lucide="play" fill="black" class="w-5 h-5 text-black ml-0.5"></i>
                 </button>
-                <button class="text-zinc-400 hover:text-white"><i data-lucide="skip-forward" class="w-5 fill-current"></i></button>
-                <button class="text-zinc-400 hover:text-white"><i data-lucide="repeat" class="w-4"></i></button>
+                <button onclick="event.stopPropagation(); seek(10)" class="text-zinc-400 hover:text-white"><i data-lucide="skip-forward" class="w-5 fill-current"></i></button>
             </div>
-            <div class="w-full flex items-center gap-2 text-xs text-zinc-400 font-mono">
+            <div class="w-full flex items-center gap-2 text-[10px] text-zinc-400 font-mono">
                 <span id="pc-current">0:00</span>
-                <div class="h-1 bg-[#4d4d4d] rounded-full w-full overflow-hidden relative group">
-                    <div id="pc-progress" class="h-full bg-white w-0 group-hover:bg-sp-green"></div>
-                </div>
+                <input type="range" id="pc-progress" value="0" max="100" class="flex-1 h-1 bg-zinc-600 rounded-lg appearance-none cursor-pointer accent-white" onclick="event.stopPropagation()">
                 <span id="pc-total">0:00</span>
             </div>
         </div>
 
-        <!-- Controles (Móvil - Solo botón Play) -->
-        <div class="md:hidden flex items-center pr-2">
-            <button onclick="event.stopPropagation(); togglePlay()" id="mobile-play-btn" class="text-white">
-                <i data-lucide="play" fill="white" class="w-8 h-8"></i>
-            </button>
-        </div>
-
-        <!-- Volumen (PC) -->
-        <div class="hidden md:flex items-center justify-end w-1/3 gap-2">
-            <i data-lucide="mic-2" class="w-4 text-zinc-400"></i>
-            <i data-lucide="list-music" class="w-4 text-zinc-400"></i>
-            <i data-lucide="speaker" class="w-4 text-zinc-400"></i>
-            <div class="w-24 h-1 bg-zinc-600 rounded-full overflow-hidden">
-                <div class="w-2/3 h-full bg-white group-hover:bg-sp-green"></div>
+        <!-- Controles Móvil -->
+        <div class="md:hidden flex items-center gap-3">
+             <div class="bars" id="mini-viz">
+                <div class="bar"></div><div class="bar"></div><div class="bar"></div>
             </div>
+            <button onclick="event.stopPropagation(); togglePlay()" id="mobile-play-btn" class="text-white">
+                <i data-lucide="play" fill="white" class="w-7 h-7"></i>
+            </button>
         </div>
     </footer>
 
-    <!-- REPRODUCTOR FULL SCREEN (Móvil) -->
-    <div id="full-player" class="fixed inset-0 bg-gradient-to-b from-zinc-800 to-black z-[60] translate-y-full transition-transform duration-300 flex flex-col p-6">
-        
-        <!-- Header -->
+    <!-- REPRODUCTOR PANTALLA COMPLETA -->
+    <div id="full-player" class="fixed inset-0 bg-gradient-to-b from-zinc-900 to-black z-[60] translate-y-full transition-transform duration-300 flex flex-col p-6">
         <div class="flex justify-between items-center mb-8 text-white">
             <button onclick="closeFullScreen()"><i data-lucide="chevron-down"></i></button>
-            <span class="text-xs font-bold tracking-widest">REPRODUCIENDO DESDE ARTISTA</span>
+            <span class="text-xs font-bold tracking-widest text-zinc-400">REPRODUCIENDO</span>
             <button><i data-lucide="more-horizontal"></i></button>
         </div>
-
-        <!-- Arte -->
-        <div class="flex-1 flex items-center justify-center mb-8">
-            <img id="full-img" src="" class="w-full aspect-square object-cover rounded shadow-2xl">
+        
+        <div class="flex-1 flex items-center justify-center mb-8 relative">
+            <img id="full-img" src="" class="w-full aspect-square object-cover rounded-xl shadow-2xl">
         </div>
 
-        <!-- Info & Controles -->
         <div class="space-y-6">
             <div class="flex justify-between items-end">
-                <div>
-                    <h2 id="full-title" class="text-2xl font-bold text-white line-clamp-1">Título</h2>
-                    <p id="full-artist" class="text-lg text-zinc-400">Artista</p>
+                <div class="flex-1 min-w-0 mr-4">
+                    <h2 id="full-title" class="text-2xl font-bold text-white line-clamp-1 leading-tight">Título</h2>
+                    <p id="full-artist" class="text-lg text-zinc-400 line-clamp-1">Artista</p>
                 </div>
-                <i data-lucide="heart" class="w-6 h-6 text-zinc-400"></i>
+                <button id="like-btn" onclick="toggleLike()"><i data-lucide="heart" class="w-7 h-7 text-zinc-400"></i></button>
             </div>
 
-            <!-- Progreso -->
             <div class="space-y-2">
-                <div class="h-1 bg-zinc-600 rounded-full w-full overflow-hidden">
-                    <div id="full-progress" class="h-full bg-white w-0 relative"></div>
-                </div>
-                <div class="flex justify-between text-xs text-zinc-400 font-medium">
+                <input type="range" id="full-progress" value="0" max="100" class="w-full h-1 bg-zinc-700 rounded-lg appearance-none cursor-pointer accent-sp-green">
+                <div class="flex justify-between text-xs text-zinc-400 font-medium font-mono">
                     <span id="full-current">0:00</span>
                     <span id="full-total">0:00</span>
                 </div>
             </div>
 
-            <!-- Botones Principales -->
             <div class="flex justify-between items-center px-2">
-                <button class="text-zinc-400"><i data-lucide="shuffle" class="w-6"></i></button>
-                <button class="text-white"><i data-lucide="skip-back" class="w-8 h-8 fill-current"></i></button>
+                <button class="text-zinc-400 hover:text-white"><i data-lucide="shuffle" class="w-6"></i></button>
+                <button onclick="seek(-10)" class="text-white hover:scale-110 transition"><i data-lucide="skip-back" class="w-8 h-8 fill-current"></i></button>
                 
                 <button onclick="togglePlay()" id="full-play-btn" class="bg-white rounded-full p-4 hover:scale-105 active:scale-95 transition text-black shadow-xl">
                     <i data-lucide="play" fill="black" class="w-8 h-8 ml-1"></i>
                 </button>
                 
-                <button class="text-white"><i data-lucide="skip-forward" class="w-8 h-8 fill-current"></i></button>
-                <button class="text-zinc-400"><i data-lucide="repeat" class="w-6"></i></button>
+                <button onclick="seek(10)" class="text-white hover:scale-110 transition"><i data-lucide="skip-forward" class="w-8 h-8 fill-current"></i></button>
+                <button class="text-zinc-400 hover:text-white"><i data-lucide="repeat" class="w-6"></i></button>
             </div>
         </div>
     </div>
 
-    <!-- MOTOR OCULTO -->
-    <div id="yt-container"><div id="yt-player"></div></div>
+    <!-- MOTOR DE AUDIO NATIVO (SIN YOUTUBE PLAYER) -->
+    <audio id="audio-engine" preload="none"></audio>
 
-    <script src="https://www.youtube.com/iframe_api"></script>
     <script>
         // === CONFIGURACIÓN ===
-        let player;
+        const audio = document.getElementById('audio-engine');
         let isPlaying = false;
-        let progressInterval;
-        let currentVideoId = null;
-
-        // Servidores proxy para obtener ID de YouTube (Rotación)
-        const PIPED_INSTANCES = [
+        
+        // Servidores Piped (Extraen el audio de YT pero te dan el archivo directo)
+        // Usamos una lista rotativa para evitar errores 403
+        const INSTANCES = [
             "https://pipedapi.kavin.rocks",
             "https://api.piped.ot.ax",
-            "https://pipedapi.moomoo.me"
+            "https://pipedapi.moomoo.me",
+            "https://pipedapi.drgns.space"
         ];
 
-        // === INICIO ===
-        function onYouTubeIframeAPIReady() {
-            player = new YT.Player('yt-player', {
-                height: '100%', width: '100%',
-                playerVars: { 'autoplay': 0, 'controls': 0, 'playsinline': 1 },
-                events: {
-                    'onStateChange': onPlayerStateChange,
-                    'onReady': () => console.log("Motor listo")
-                }
-            });
-        }
-
-        // === LÓGICA DE UI ===
+        // === SUGERENCIAS INICIALES ===
+        const suggestionsData = [
+            { t: "Viva Latino", a: "Top Hits", img: "https://i.scdn.co/image/ab67706f00000002b80860833a6750059c447e12" },
+            { t: "Lofi Beats", a: "Concentración", img: "https://i.scdn.co/image/ab67616d0000b273e04724c9c7f6b986b24545ee" },
+            { t: "Rock Classics", a: "Leyendas", img: "https://i.scdn.co/image/ab67706f000000025ea54116223a54c609559560" },
+            { t: "K-Pop Fresh", a: "Novedades", img: "https://i.scdn.co/image/ab67616d0000b273d328325d72a733479bc1215b" }
+        ];
         
-        // Cargar "Hecho para ti" (Simulado)
-        const suggestions = [
-            { t: "Bad Bunny Mix", a: "Bad Bunny, J Balvin, Ozuna", img: "https://i.scdn.co/image/ab6761610000e5eb9ad50e4ca20eb24911e8ec5d" },
-            { t: "Rock Classics", a: "Queen, AC/DC, Guns N' Roses", img: "https://i.scdn.co/image/ab67706f000000025ea54116223a54c609559560" },
-            { t: "Concentración", a: "Piano, Ambient, Lofi", img: "https://i.scdn.co/image/ab67616d0000b273e04724c9c7f6b986b24545ee" },
-            { t: "K-Pop ON!", a: "BTS, BLACKPINK, NewJeans", img: "https://i.scdn.co/image/ab67616d0000b273d328325d72a733479bc1215b" }
-        ];
-
-        const madeForYou = document.getElementById('made-for-you');
-        suggestions.forEach(s => {
-            madeForYou.innerHTML += `
-                <div onclick="searchMusic('${s.t}')" class="min-w-[150px] p-4 bg-[#181818] hover:bg-[#282828] rounded-md cursor-pointer transition group">
-                    <div class="relative mb-3">
-                        <img src="${s.img}" class="w-full aspect-square rounded shadow-lg object-cover">
-                        <div class="absolute bottom-2 right-2 bg-sp-green rounded-full p-3 shadow-xl opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition hover:scale-105">
-                            <i data-lucide="play" fill="black" class="w-5 h-5 text-black ml-0.5"></i>
-                        </div>
-                    </div>
-                    <h4 class="font-bold text-white truncate">${s.t}</h4>
-                    <p class="text-sm text-zinc-400 line-clamp-2 mt-1">${s.a}</p>
-                </div>
-            `;
+        const sugCont = document.getElementById('suggestions');
+        suggestionsData.forEach(s => {
+            sugCont.innerHTML += `
+                <div onclick="searchMusic('${s.t}')" class="min-w-[140px] p-3 bg-[#181818] hover:bg-[#282828] rounded-lg cursor-pointer transition group">
+                    <img src="${s.img}" class="w-full aspect-square rounded mb-3 shadow-lg object-cover">
+                    <h4 class="font-bold text-white truncate text-sm">${s.t}</h4>
+                    <p class="text-xs text-zinc-400 truncate">${s.a}</p>
+                </div>`;
         });
 
-        // Buscador
+        // === BUSCADOR ===
         const searchInput = document.getElementById('searchInput');
-        let debounce;
+        let timer;
+        
         searchInput.addEventListener('input', (e) => {
-            clearTimeout(debounce);
-            debounce = setTimeout(() => searchMusic(e.target.value), 500);
+            clearTimeout(timer);
+            timer = setTimeout(() => searchMusic(e.target.value), 600);
         });
 
         async function searchMusic(query) {
             if(!query) return;
-            
-            // UI Switch
             document.getElementById('home-content').classList.add('hidden');
-            const resultsDiv = document.getElementById('search-results');
-            resultsDiv.classList.remove('hidden');
-            const list = document.getElementById('results-list');
+            document.getElementById('search-results').classList.remove('hidden');
             
-            list.innerHTML = '<div class="text-center py-10"><div class="loader-bar bg-sp-green"></div><div class="loader-bar bg-sp-green mx-1"></div><div class="loader-bar bg-sp-green"></div></div>';
+            const list = document.getElementById('results-list');
+            list.innerHTML = '<div class="py-10 text-center text-sp-green animate-pulse">Buscando...</div>';
 
             try {
-                // iTunes Search API
+                // Usamos iTunes API solo para obtener nombres y portadas bonitas
                 const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(query)}&media=music&limit=15`);
                 const data = await res.json();
                 
                 list.innerHTML = "";
-                data.results.forEach((track, i) => {
+                data.results.forEach(track => {
                     const bigImg = track.artworkUrl100.replace('100x100', '600x600');
-                    const div = document.createElement('div');
-                    div.className = "flex items-center gap-3 p-2 rounded hover:bg-[#2a2a2a] cursor-pointer group transition";
-                    div.innerHTML = `
+                    const el = document.createElement('div');
+                    el.className = "flex items-center gap-3 p-2 rounded-lg hover:bg-white/10 cursor-pointer transition group";
+                    el.innerHTML = `
                         <div class="relative w-12 h-12 flex-shrink-0">
                             <img src="${track.artworkUrl100}" class="w-full h-full rounded object-cover">
-                            <div class="absolute inset-0 bg-black/40 hidden group-hover:flex items-center justify-center text-white">
-                                <i data-lucide="play" fill="white" class="w-4"></i>
+                            <div class="absolute inset-0 bg-black/40 hidden group-hover:flex items-center justify-center">
+                                <i data-lucide="play" fill="white" class="w-4 text-white"></i>
                             </div>
                         </div>
                         <div class="flex-1 min-w-0">
-                            <h4 class="text-white font-medium truncate ${i===0 ? 'text-sp-green':''}">${track.trackName}</h4>
-                            <p class="text-sm text-zinc-400 truncate">${track.artistName}</p>
+                            <h4 class="text-white font-medium text-sm truncate ${list.children.length === 0 ? 'text-sp-green':''}">${track.trackName}</h4>
+                            <p class="text-xs text-zinc-400 truncate">${track.artistName}</p>
                         </div>
-                        <div class="text-sm text-zinc-400 hidden md:block">${millisToTime(track.trackTimeMillis)}</div>
                     `;
-                    div.onclick = () => playSong(track.trackName, track.artistName, bigImg);
-                    list.appendChild(div);
+                    el.onclick = () => loadTrack(track.trackName, track.artistName, bigImg);
+                    list.appendChild(el);
                 });
                 lucide.createIcons();
-
             } catch (e) {
-                list.innerHTML = '<p class="text-red-500 text-center">Error de conexión.</p>';
+                list.innerHTML = '<div class="text-center text-red-400 py-10">Error de conexión</div>';
             }
         }
 
-        // === REPRODUCCIÓN (CORE) ===
-        async function playSong(title, artist, img) {
-            // 1. Actualizar Metadata Visual
-            document.getElementById('mini-title').innerText = title;
-            document.getElementById('mini-artist').innerText = artist;
-            document.getElementById('mini-img').src = img;
+        // === MOTOR DE AUDIO (LA PARTE CRÍTICA) ===
+        async function loadTrack(title, artist, img) {
+            // 1. UI Update
+            updateMetadata(title, artist, img);
+            setLoading(true);
+            openFullScreen(); // Opcional, para móviles
+
+            // 2. Buscar Stream Directo
+            const query = `${title} ${artist} lyrics`; // "lyrics" ayuda a encontrar videos de música oficiales/lyric videos, evitando videoclips largos
             
-            document.getElementById('full-title').innerText = title;
-            document.getElementById('full-artist').innerText = artist;
-            document.getElementById('full-img').src = img;
-
-            document.getElementById('mobile-title').innerText = title;
-            document.getElementById('mobile-status').innerHTML = '<span class="loader-bar bg-sp-green"></span> Cargando audio...';
-
-            // 2. Buscar ID de YouTube (Backend invisible)
-            const q = `${title} ${artist} audio`;
-            let videoId = null;
-
-            // Intentar en varios servidores hasta encontrar
-            for (const api of PIPED_INSTANCES) {
+            let streamUrl = null;
+            
+            // Intentamos encontrar un enlace funcional en nuestros servidores
+            for (const instance of INSTANCES) {
                 try {
-                    const res = await fetch(`${api}/search?q=${encodeURIComponent(q)}&filter=music_videos`);
-                    const data = await res.json();
-                    if(data.items && data.items.length > 0) {
-                        videoId = data.items[0].url.split('=')[1];
-                        break;
+                    console.log(`Buscando en ${instance}...`);
+                    // Paso A: Buscar ID
+                    const searchRes = await fetch(`${instance}/search?q=${encodeURIComponent(query)}&filter=music_videos`);
+                    const searchData = await searchRes.json();
+                    
+                    if (!searchData.items || searchData.items.length === 0) continue;
+                    
+                    const videoId = searchData.items[0].url.split('=')[1];
+                    
+                    // Paso B: Obtener Audio Stream Directo (.m4a / .webm)
+                    const streamRes = await fetch(`${instance}/streams/${videoId}`);
+                    const streamData = await streamRes.json();
+                    
+                    // Buscamos solo audio (m4a es mejor para apple/web)
+                    const audioStream = streamData.audioStreams.find(s => s.format === 'M4A') || streamData.audioStreams[0];
+                    
+                    if (audioStream) {
+                        streamUrl = audioStream.url;
+                        break; // ¡Encontrado!
                     }
-                } catch(e) { console.log("Fail " + api); }
-            }
-
-            if(videoId) {
-                currentVideoId = videoId;
-                player.loadVideoById(videoId);
-                player.playVideo();
-            } else {
-                alert("No se encontró el audio de esta canción.");
-            }
-        }
-
-        function onPlayerStateChange(event) {
-            if (event.data == YT.PlayerState.PLAYING) {
-                isPlaying = true;
-                updatePlayBtn(true);
-                startProgress();
-                document.getElementById('mobile-status').innerText = "Reproduciendo";
-                document.getElementById('mobile-status').className = "text-xs text-sp-green";
-            } else {
-                isPlaying = false;
-                updatePlayBtn(false);
-                stopProgress();
-                if(event.data == YT.PlayerState.BUFFERING) {
-                    document.getElementById('mobile-status').innerText = "Buffering...";
+                } catch (e) {
+                    console.warn(`Falló instancia ${instance}`, e);
                 }
             }
+
+            if (streamUrl) {
+                audio.src = streamUrl;
+                audio.play()
+                    .then(() => {
+                        setLoading(false);
+                        isPlaying = true;
+                        updatePlayBtns();
+                    })
+                    .catch(err => {
+                        console.error("Error reproduciendo", err);
+                        alert("El navegador bloqueó la reproducción automática. Pulsa Play.");
+                        setLoading(false);
+                    });
+            } else {
+                setLoading(false);
+                alert("No se encontró una fuente de audio disponible para esta canción.");
+            }
         }
+
+        // === CONTROLES DE AUDIO ===
+        audio.addEventListener('timeupdate', () => {
+            if (!isNaN(audio.duration)) {
+                const pct = (audio.currentTime / audio.duration) * 100;
+                document.getElementById('pc-progress').value = pct;
+                document.getElementById('full-progress').value = pct;
+                document.getElementById('pc-current').innerText = formatTime(audio.currentTime);
+                document.getElementById('full-current').innerText = formatTime(audio.currentTime);
+                document.getElementById('pc-total').innerText = formatTime(audio.duration);
+                document.getElementById('full-total').innerText = formatTime(audio.duration);
+            }
+        });
+
+        audio.addEventListener('ended', () => {
+            isPlaying = false;
+            updatePlayBtns();
+        });
 
         function togglePlay() {
-            if(isPlaying) player.pauseVideo();
-            else player.playVideo();
+            if (audio.paused && audio.src) {
+                audio.play();
+                isPlaying = true;
+            } else {
+                audio.pause();
+                isPlaying = false;
+            }
+            updatePlayBtns();
         }
 
-        function updatePlayBtn(playing) {
-            const icon = playing ? '<i data-lucide="pause" fill="black" class="ml-0"></i>' : '<i data-lucide="play" fill="black" class="ml-0.5"></i>';
-            const iconMobile = playing ? '<i data-lucide="pause" fill="white"></i>' : '<i data-lucide="play" fill="white"></i>';
+        function seek(seconds) {
+            audio.currentTime += seconds;
+        }
+
+        // Slider seeking
+        const sliders = [document.getElementById('pc-progress'), document.getElementById('full-progress')];
+        sliders.forEach(s => {
+            s.addEventListener('input', (e) => {
+                const time = (e.target.value / 100) * audio.duration;
+                audio.currentTime = time;
+            });
+        });
+
+        // === UI HELPERS ===
+        function updateMetadata(t, a, i) {
+            ['mini', 'full'].forEach(p => {
+                document.getElementById(`${p}-title`).innerText = t;
+                document.getElementById(`${p}-artist`).innerText = a;
+                document.getElementById(`${p}-img`).src = i;
+            });
+        }
+
+        function setLoading(loading) {
+            const miniT = document.getElementById('mini-artist');
+            if(loading) {
+                miniT.innerHTML = '<span class="text-sp-green animate-pulse">Cargando stream...</span>';
+                document.getElementById('mobile-play-btn').classList.add('opacity-50');
+            } else {
+                document.getElementById('mobile-play-btn').classList.remove('opacity-50');
+            }
+        }
+
+        function updatePlayBtns() {
+            const icon = isPlaying ? 'pause' : 'play';
+            const htmlPC = `<i data-lucide="${icon}" fill="black" class="w-5 h-5 text-black ${isPlaying ? '':'ml-0.5'}"></i>`;
+            const htmlMob = `<i data-lucide="${icon}" fill="white" class="w-7 h-7"></i>`;
             
-            document.getElementById('pc-play-btn').innerHTML = icon;
-            document.getElementById('full-play-btn').innerHTML = icon.replace('white', 'black'); // Ajuste visual
-            document.getElementById('mobile-play-btn').innerHTML = iconMobile;
+            document.getElementById('pc-play-btn').innerHTML = htmlPC;
+            document.getElementById('full-play-btn').innerHTML = htmlPC.replace('w-5', 'w-8').replace('h-5', 'h-8');
+            document.getElementById('mobile-play-btn').innerHTML = htmlMob;
+            
+            const viz = document.getElementById('mini-viz');
+            if(isPlaying) viz.classList.add('playing'); else viz.classList.remove('playing');
+            
             lucide.createIcons();
         }
 
-        // === PROGRESO ===
-        function startProgress() {
-            stopProgress();
-            progressInterval = setInterval(() => {
-                if(!player || !player.getDuration) return;
-                const cur = player.getCurrentTime();
-                const tot = player.getDuration();
-                const pct = (cur/tot)*100;
-                
-                // PC
-                document.getElementById('pc-progress').style.width = `${pct}%`;
-                document.getElementById('pc-current').innerText = fmtTime(cur);
-                document.getElementById('pc-total').innerText = fmtTime(tot);
-
-                // Full Screen
-                document.getElementById('full-progress').style.width = `${pct}%`;
-                document.getElementById('full-current').innerText = fmtTime(cur);
-                document.getElementById('full-total').innerText = fmtTime(tot);
-            }, 1000);
-        }
-
-        function stopProgress() { clearInterval(progressInterval); }
-
-        // === UTILIDADES ===
-        function fmtTime(s) {
-            if(!s) return "0:00";
-            const m = Math.floor(s/60);
-            const sc = Math.floor(s%60);
+        function formatTime(s) {
+            const m = Math.floor(s / 60);
+            const sc = Math.floor(s % 60);
             return `${m}:${sc<10?'0':''}${sc}`;
-        }
-        function millisToTime(ms) {
-            const m = Math.floor(ms / 60000);
-            const s = ((ms % 60000) / 1000).toFixed(0);
-            return m + ":" + (s < 10 ? '0' : '') + s;
         }
 
         // Navegación
@@ -471,17 +422,11 @@
             document.getElementById('home-content').classList.remove('hidden');
             document.getElementById('searchInput').value = "";
         }
-        function focusSearch() {
-            document.getElementById('searchInput').focus();
+        function focusSearch() { document.getElementById('searchInput').focus(); }
+        function openFullScreen() { 
+            if(window.innerWidth < 768) document.getElementById('full-player').classList.remove('translate-y-full'); 
         }
-        function openFullScreen() {
-            if(window.innerWidth < 768) {
-                document.getElementById('full-player').classList.remove('translate-y-full');
-            }
-        }
-        function closeFullScreen() {
-            document.getElementById('full-player').classList.add('translate-y-full');
-        }
+        function closeFullScreen() { document.getElementById('full-player').classList.add('translate-y-full'); }
 
         lucide.createIcons();
     </script>
